@@ -23,13 +23,13 @@ private:
         return key1 > key2;
     }
 
-    Node *head;
+    Node *root;
     int element_count;
 
 public:
     binary_search_tree()
     {
-        this->head = nullptr;
+        this->root = nullptr;
         this->element_count = 0;
     }
 
@@ -39,32 +39,35 @@ public:
         K key_to_insert = key;
 
         Node *trav_parent = nullptr;
-        Node *trav = head;
+        Node *trav = root;
         K trav_key = trav->key;
 
+        // search the proper sub-branch of trav
         while (trav != null)
         {
+            trav_parent = trav;
             if (is_larger_key(key_to_insert, trav_key))
             {
-                trav_parent = trav;
                 trav = trav->right_child;
                 trav_key = trav->key;
             }
             else
             {
-                trav_parent = trav;
                 trav = trav->left_child;
                 trav_key = trav->key;
             }
         }
-        // position found, update parent Node's attributes
-        if (is_larger_key(key_to_insert, trav_parent->key))
+        // only update parent attributes if the insertion is not at the root
+        if (trav_parent != nullptr)
         {
-            trav_parent->right_child = node_to_insert;
-        }
-        else
-        {
-            trav_parent->left_child = node_to_insert;
+            if (is_larger_key(key_to_insert, trav_parent->key))
+            {
+                trav_parent->right_child = node_to_insert;
+            }
+            else
+            {
+                trav_parent->left_child = node_to_insert;
+            }
         }
         trav = node_to_insert;
         element_count += 1;
@@ -74,8 +77,34 @@ public:
     {
     }
 
-    void search(K key)
+    bool search(K key)
     {
+        Node *trav = root;
+        K trav_key = trav->key;
+
+        // find potential position of key
+        while (trav != null)
+        {
+            // if found, return true
+            if (trav_key == key)
+            {
+                return true;
+            }
+
+            // else search the proper sub-branch of trav
+            if (is_larger_key(key_to_insert, trav_key))
+            {
+                trav = trav->right_child;
+                trav_key = trav->key;
+            }
+            else
+            {
+                trav = trav->left_child;
+                trav_key = trav->key;
+            }
+        }
+        // trav == null: key not found
+        return false;
     }
 
     K get_min()
