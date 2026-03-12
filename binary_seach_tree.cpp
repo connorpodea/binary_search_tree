@@ -75,7 +75,25 @@ private:
         return get_min_node(trav);
     }
 
-    // binary search tree's attributes
+    // a helper method for destructor
+    void clear(Node *node)
+    {
+        if (node == nullptr)
+            return;
+
+        // 1. clear the left subtree
+        clear(node->left_child);
+
+        // 2. clear the right subtree
+        clear(node->right_child);
+
+        // 3. delete the current node
+        delete node;
+    }
+
+    // ***************************************
+    // *** binary search tree's attributes ***
+    // ***************************************
     Node *root;
     int element_count;
 
@@ -86,9 +104,15 @@ public:
         this->element_count = 0;
     }
 
+    ~binary_search_tree()
+    {
+        clear(root);
+        root = nullptr; // Good practice to avoid dangling pointers
+    }
+
     void insert(K key)
     {
-        Node *node_to_insert = Node(key, nullptr, nullptr, nullptr);
+        Node *node_to_insert = new Node(key, nullptr, nullptr, nullptr);
 
         // search the proper sub-branch of trav
         Node *parent = find_parent(key);
@@ -114,26 +138,26 @@ public:
 
     void remove(K key)
     {
-        Node *to_removes_parent = find_parent(key);
+        Node *to_delete_parent = find_parent(key);
 
         // key does not exist
-        if (to_removes_parent == nullptr)
+        if (to_delete_parent == nullptr)
         {
             throw std::invalid_argument("Key does not exist.");
         }
 
-        Node *to_remove;       // determine the node which must be removed, given its parent
-        Node *is_parents_left; // the node to delete is the left child of the parent node
+        Node *to_delete;               // determine the node which must be removed, given its parent
+        Node *to_delete_is_left_child; // the node to delete is the left child of the parent node
 
-        if (to_removes_parent->left_child->key == to_remove->key)
+        if (to_delete_parent->left_child->key == key)
         {
-            to_remove = to_removes_parent->left_child;
-            is_parents_left = true;
+            to_delete = to_delete_parent->left_child;
+            to_delete_is_left_child = true;
         }
         else
         {
-            to_remove = to_removes_parent->right_child;
-            is_parents_left = false;
+            to_delete = to_delete_parent->right_child;
+            to_delete_is_left_child = false;
         }
 
         // case 1: node to delete has no children
@@ -160,7 +184,7 @@ public:
         // step 4:
         // deallocate the memory that was used to store the node which we want to remove
 
-        Node *predecessor = find_predecessor(to_remove);
+        Node *predecessor = find_predecessor(to_delete);
         Node *predecessors_parent = predecessor->parent;
         Node *successor = find_succesor(to_delete);
         Node *successors_parent = successor->parent;
@@ -175,12 +199,12 @@ public:
 
             if (is_parents_left) // to remove is the parents left child
             {
-                to_removes_parent->left_child = predecessor;
+                to_delete_parent->left_child = predecessor;
             }
             else // to remove is the parents right child
             {
                 // update the parent's child pointer from the node to delete to the predecessor
-                to_removes_parent->right_child = predecessor;
+                to_delete_parent->right_child = predecessor;
             }
         }
         else if (successor != nullptr)
@@ -193,26 +217,26 @@ public:
 
             if (is_parents_left) // to remove is the parents left child
             {
-                to_removes_parent->left_child = predecessor;
+                to_delete_parent->left_child = predecessor;
             }
             else // to remove is the parents right child
             {
                 // update the parent's child pointer from the node to delete to the predecessor
-                to_removes_parent->right_child = predecessor;
+                to_delete_parent->right_child = predecessor;
             }
         }
         else
         {
             if (is_parents_left)
             {
-                to_removes_parent->left_child = nullptr;
+                to_delete_parent->left_child = nullptr;
             }
             else
             {
-                to_removes_parent->right_child = nullptr;
+                to_delete_parent->right_child = nullptr;
             }
         }
-        delete to_remove;
+        delete to_delete;
     }
 
     bool search(K key)
@@ -235,11 +259,11 @@ public:
         return key == root->key;
     }
 
-    Node *get_min_node(Node *starting_root)
+    Node *get_min_node(Node *starting_root) // returns the min node given an initial root
     {
         if (starting_root == nullptr)
         {
-            return std::underflow_error("The given root has no elements associated with it.")
+            throw std::underflow_error("The given root has no elements associated with it.")
         }
 
         Node *trav = starting_root;
@@ -251,16 +275,16 @@ public:
         return trav;
     }
 
-    K get_min_val(Node *starting_root)
+    K get_min_val(Node *starting_root) // returns the min key given an initial root
     {
         return get_min_node(starting_root)->key;
     }
 
-    Node *get_max_node(Node *starting_root)
+    Node *get_max_node(Node *starting_root) // returns the max node given an initial root
     {
         if (starting_root == nullptr)
         {
-            return std::underflow_error("The given root has no elements associated with it.")
+            throw std::underflow_error("The given root has no elements associated with it.")
         }
 
         Node *trav = starting_root;
@@ -272,7 +296,7 @@ public:
         return trav;
     }
 
-    K get_max(Node *starting_root)
+    K get_max(Node *starting_root) // returns the max key given an initial root
     {
         return get_min_node(starting_root)->key;
     }
