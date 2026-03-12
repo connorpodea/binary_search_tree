@@ -17,8 +17,10 @@ private:
             this->right_child = right_child;
         }
     };
+    // **************************************************************
+    // *** helper methods; private to allow for a clean interface ***
+    // **************************************************************
 
-    // helper methods, private to allow for a clean interface
     bool is_larger_key(K key1, K key2)
     {
         return key1 > key2;
@@ -26,7 +28,7 @@ private:
 
     Node *find_parent(K key)
     {
-        // return the parent of the key, for both searching, removal, insertion, etc.
+        // return the parent of a given key
 
         Node *trav = root;
         Node *parent = nullptr;
@@ -57,11 +59,7 @@ private:
 
         Node *trav = target->left_child;
 
-        while (trav->right_child != nullptr)
-        {
-            trav = trav->right_child;
-        }
-        return trav;
+        return get_max_node(trav);
     }
 
     Node *find_succesor(Node *target)
@@ -74,11 +72,7 @@ private:
 
         Node *trav = target->right_child;
 
-        while (trav->left_child != nullptr)
-        {
-            trav = trav->left_child;
-        }
-        return trav;
+        return get_min_node(trav);
     }
 
     // binary search tree's attributes
@@ -241,35 +235,50 @@ public:
         return key == root->key;
     }
 
-    K get_min()
+    Node *get_min_node(Node *starting_root)
     {
-        if (root == nullptr)
+        if (starting_root == nullptr)
         {
-            return std::underflow_error("The tree is empty");
+            return std::underflow_error("The given root has no elements associated with it.")
         }
 
-        Node *trav = root;
+        Node *trav = starting_root;
 
         while (trav->left_child != nullptr)
         {
             trav = trav->left_child;
         }
-        return trav->key;
+        return trav;
     }
 
-    K get_max()
+    K get_min_val(Node *starting_root)
     {
-        if (root == nullptr)
+        return get_min_node(starting_root)->key;
+    }
+
+    Node *get_max_node(Node *starting_root)
+    {
+        if (starting_root == nullptr)
         {
-            return std::underflow_error("The tree is empty");
+            return std::underflow_error("The given root has no elements associated with it.")
         }
 
-        Node *trav = root;
+        Node *trav = starting_root;
 
         while (trav->right_child != nullptr)
         {
             trav = trav->right_child;
         }
-        return trav->key;
+        return trav;
+    }
+
+    K get_max(Node *starting_root)
+    {
+        return get_min_node(starting_root)->key;
+    }
+
+    Node *get_tree_root()
+    {
+        return this->root;
     }
 };
