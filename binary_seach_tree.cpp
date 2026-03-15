@@ -112,12 +112,12 @@ public:
 
     void insert(K key)
     {
-        Node *node_to_insert = new Node(key, nullptr, nullptr, nullptr);
-
         // search the proper sub-branch of trav
         Node *parent = find_parent(key);
 
-        // only update parent attributes if the insertion is not at the root
+        Node *node_to_insert = new Node(key, parent, nullptr, nullptr);
+
+        // only update parent's attributes if the insertion is not at the root
         if (parent != nullptr)
         {
             if (is_larger_key(key, parent->key))
@@ -128,6 +128,7 @@ public:
             {
                 parent->left_child = node_to_insert;
             }
+            node_to_insert->parent = parent;
         }
         else // initialize the root
         {
@@ -141,15 +142,15 @@ public:
         Node *to_delete_parent = find_parent(key);
 
         // key does not exist
-        if (to_delete_parent == nullptr)
+        if (to_delete_parent == nullptr && root->key != key)
         {
             throw std::invalid_argument("Key does not exist.");
         }
 
-        Node *to_delete;               // determine the node which must be removed, given its parent
-        Node *to_delete_is_left_child; // the node to delete is the left child of the parent node
+        Node *to_delete;              // determine the node which must be removed, given its parent
+        bool to_delete_is_left_child; // the node to delete is the left child of the parent node
 
-        if (to_delete_parent->left_child->key == key)
+        if (to_delete_parent && to_delete_parent->left_child && to_delete_parent->left_child->key == key)
         {
             to_delete = to_delete_parent->left_child;
             to_delete_is_left_child = true;
@@ -185,9 +186,9 @@ public:
         // deallocate the memory that was used to store the node which we want to remove
 
         Node *predecessor = find_predecessor(to_delete);
-        Node *predecessors_parent = predecessor->parent;
+        Node *predecessors_parent;
         Node *successor = find_succesor(to_delete);
-        Node *successors_parent = successor->parent;
+        Node *successors_parent;
 
         if (predecessor != nullptr)
         {
@@ -195,9 +196,12 @@ public:
             predecessor->left_child = to_delete->left_child;
             predecessor->right_child = to_delete->right_child;
             // update the parent of predecessor's child node to nullptr
+            predecessors_parent = predecessor->parent;
             predecessors_parent->right_child = nullptr;
+            // update the parent of predecessor to be the parent of the node we want to remove
+            predecessor->parent = to_delete_parent;
 
-            if (is_parents_left) // to remove is the parents left child
+            if (to_delete_is_left_child) // to remove is the parents left child
             {
                 to_delete_parent->left_child = predecessor;
             }
@@ -213,21 +217,24 @@ public:
             successor->left_child = to_delete->left_child;
             successor->right_child = to_delete->right_child;
             // update the parent of predecessor's child node to nullptr
+            successors_parent = successor->parent;
             successors_parent->left_child = nullptr;
+            // update the parent of successor to be the parent of the node we want to remove
+            successor->parent = to_delete_parent;
 
-            if (is_parents_left) // to remove is the parents left child
+            if (to_delete_is_left_child) // to remove is the parents left child
             {
-                to_delete_parent->left_child = predecessor;
+                to_delete_parent->left_child = successor;
             }
             else // to remove is the parents right child
             {
                 // update the parent's child pointer from the node to delete to the predecessor
-                to_delete_parent->right_child = predecessor;
+                to_delete_parent->right_child = successor;
             }
         }
         else
         {
-            if (is_parents_left)
+            if (to_delete_is_left_child)
             {
                 to_delete_parent->left_child = nullptr;
             }
@@ -237,6 +244,7 @@ public:
             }
         }
         delete to_delete;
+        element_count -= 1;
     }
 
     bool search(K key)
@@ -246,7 +254,7 @@ public:
         // parent exists
         if (parent != nullptr)
         {
-            if (is_larger_key(key, parent->right_child))
+            if (is_larger_key(key, parent->key))
             {
                 return key == parent->right_child->key;
             }
@@ -263,7 +271,7 @@ public:
     {
         if (starting_root == nullptr)
         {
-            throw std::underflow_error("The given root has no elements associated with it.")
+            throw std::underflow_error("The given root has no elements associated with it.");
         }
 
         Node *trav = starting_root;
@@ -284,7 +292,7 @@ public:
     {
         if (starting_root == nullptr)
         {
-            throw std::underflow_error("The given root has no elements associated with it.")
+            throw std::underflow_error("The given root has no elements associated with it.");
         }
 
         Node *trav = starting_root;
@@ -298,7 +306,7 @@ public:
 
     K get_max(Node *starting_root) // returns the max key given an initial root
     {
-        return get_min_node(starting_root)->key;
+        return get_max_node(starting_root)->key;
     }
 
     Node *get_tree_root()
